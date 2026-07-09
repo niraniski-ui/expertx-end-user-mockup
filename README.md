@@ -2,7 +2,7 @@
 
 Interactive HTML prototype for the ExpertX employee access flow (Part 3).
 
-**Live demo:** https://growthspace-engineering.github.io/expertx-end-user-mockup/
+**Live demo:** https://niraniski-ui.github.io/expertx-end-user-mockup/
 
 ## Screens
 
