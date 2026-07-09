@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ExpertX Agent Page — Mockup</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #0a0a12;
+      color: #fff;
+      min-height: 100vh;
+    }
+
+    /* ── Screen picker (dev only) ── */
+    .picker {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: rgba(0,0,0,.85);
+      backdrop-filter: blur(8px);
+      padding: 10px 16px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .picker span { color: #888; font-size: 12px; align-self: center; margin-right: 4px; }
+    .picker button {
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.12);
+      color: #ccc;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .picker button.active { background: #6c3fc5; border-color: #6c3fc5; color: #fff; }
+
+    /* ── Reviewer label ── */
+    .flow-label {
+      position: fixed;
+      left: 24px;
+      top: 50%;
+      transform: translateY(-50%) rotate(-90deg);
+      transform-origin: center center;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.35);
+      white-space: nowrap;
+      pointer-events: none;
+      z-index: 50;
+      user-select: none;
+    }
+    @media (max-width: 640px) {
+      .flow-label {
+        left: 10px;
+        font-size: 12px;
+        letter-spacing: 0.2em;
+      }
+    }
+
+    /* ── Page shell ── */
+    .page {
+      display: none;
+      min-height: 100vh;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 24px 40px;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 100%, rgba(108,63,197,.35) 0%, transparent 70%),
+        #0d0d18;
+    }
+    .page.active { display: flex; }
+
+    .card {
+      width: 100%;
+      max-width: 420px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 0;
+    }
+
+    /* ── Avatar watermark (from GrowthSpace prototype) ── */
+    .avatar-wrap {
+      position: relative;
+      width: 280px;
+      height: 280px;
+      margin-bottom: 28px;
+      display: grid;
+      place-items: center;
+    }
+    .avatar-wrap--sm { width: 180px; height: 180px; margin-bottom: 20px; }
+    .avatar-wrap svg { width: 100%; height: 100%; display: block; }
+
+    @keyframes gs-bar {
+      0%, 100% { transform: scaleY(0.35); }
+      50% { transform: scaleY(1); }
+    }
+    /* ── Typography ── */
+    .agent-name {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -.3px;
+      margin-bottom: 6px;
+    }
+    .company-name {
+      font-size: 15px;
+      color: rgba(255,255,255,.45);
+      margin-bottom: 8px;
+    }
+    .purpose {
+      font-size: 14px;
+      color: rgba(255,255,255,.55);
+      line-height: 1.5;
+      max-width: 320px;
+      margin-bottom: 24px;
+    }
+
+    /* ── Form ── */
+    .field-group {
+      width: 100%;
+      margin-bottom: 16px;
+      text-align: left;
+    }
+    .field-group label {
+      display: block;
+      font-size: 13px;
+      color: rgba(255,255,255,.5);
+      margin-bottom: 8px;
+    }
+    .field-group input {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: #fff;
+      font-size: 16px;
+      outline: none;
+    }
+    .field-group input:focus { border-color: rgba(108,63,197,.7); }
+    .field-group input.error { border-color: #e05252; }
+
+    .hint {
+      font-size: 12px;
+      color: rgba(255,255,255,.35);
+      margin-top: 8px;
+    }
+
+    .error-box {
+      width: 100%;
+      background: rgba(224,82,82,.12);
+      border: 1px solid rgba(224,82,82,.35);
+      border-radius: 12px;
+      padding: 14px 16px;
+      text-align: left;
+      margin-bottom: 16px;
+    }
+    .error-box p { font-size: 14px; line-height: 1.45; color: #f0a0a0; }
+    .error-box p.sub { font-size: 12px; color: rgba(240,160,160,.7); margin-top: 6px; }
+
+    /* ── Buttons ── */
+    .btn-primary {
+      width: 100%;
+      padding: 16px 24px;
+      border-radius: 14px;
+      border: none;
+      background: #6c3fc5;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 8px;
+      transition: background .15s;
+    }
+    .btn-primary:hover { background: #7d52d4; }
+
+    .btn-secondary {
+      background: none;
+      border: none;
+      color: rgba(255,255,255,.45);
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 16px;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    .btn-secondary:hover { color: rgba(255,255,255,.7); }
+
+    /* ── Example questions ── */
+    .try-label {
+      font-size: 13px;
+      color: rgba(255,255,255,.4);
+      margin-bottom: 12px;
+      align-self: flex-start;
+      width: 100%;
+      text-align: left;
+    }
+    .chips {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+    .chip {
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 14px;
+      color: rgba(255,255,255,.75);
+      text-align: left;
+      cursor: pointer;
+    }
+    .chip:hover { background: rgba(108,63,197,.2); border-color: rgba(108,63,197,.4); }
+
+    /* ── Email sent icon ── */
+    .email-icon {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      background: rgba(108,63,197,.2);
+      border: 1px solid rgba(108,63,197,.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      font-size: 28px;
+    }
+
+    .sent-to {
+      font-size: 15px;
+      color: rgba(255,255,255,.6);
+      margin-bottom: 4px;
+    }
+    .sent-email {
+      font-size: 16px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 28px;
+    }
+
+    /* ── In-call state ── */
+    .in-call .avatar-wrap { margin-bottom: 20px; }
+    .wave-bars {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      justify-content: center;
+      height: 32px;
+      margin-bottom: 20px;
+    }
+    .wave-bars span {
+      display: block;
+      width: 3px;
+      border-radius: 3px;
+      background: rgba(240,169,255,.85);
+      height: 22px;
+      transform-origin: center;
+      animation: gs-bar 1s ease-in-out infinite;
+    }
+    .wave-bars span:nth-child(1) { animation-delay: 0s; }
+    .wave-bars span:nth-child(2) { animation-delay: .09s; }
+    .wave-bars span:nth-child(3) { animation-delay: .18s; }
+    .wave-bars span:nth-child(4) { animation-delay: .27s; }
+    .wave-bars span:nth-child(5) { animation-delay: .36s; }
+    .wave-bars span:nth-child(6) { animation-delay: .45s; }
+    .wave-bars span:nth-child(7) { animation-delay: .54s; }
+    .status-line { font-size: 14px; color: rgba(255,255,255,.45); margin-bottom: 32px; }
+
+    /* ── Widget bar ── */
+    .widget-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(30,30,40,.9);
+      border: 1.5px solid rgba(255,255,255,.85);
+      border-radius: 16px;
+      padding: 10px 14px;
+      margin-top: auto;
+      position: fixed;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 48px);
+      max-width: 340px;
+    }
+    .wb-btn {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .wb-profile {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,.7);
+      background: rgba(255,255,255,.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .wb-profile svg { width: 22px; opacity: .6; }
+    .wb-chat { background: #6c3fc5; }
+    .wb-chat svg { width: 22px; }
+    .wb-mic { background: rgba(255,255,255,.88); flex: 1; max-width: 80px; }
+    .wb-mic svg { width: 22px; opacity: .5; }
+    .wb-end {
+      background: #e83030;
+      color: #fff;
+      font-weight: 700;
+      font-size: 15px;
+      flex: 1;
+      max-width: 90px;
+      border-radius: 12px;
+      letter-spacing: .3px;
+    }
+
+    /* ── Share row ── */
+    .share-box {
+      width: 100%;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+    .share-box p { font-size: 14px; color: rgba(255,255,255,.65); line-height: 1.5; margin-bottom: 14px; }
+    .share-actions { display: flex; gap: 10px; }
+    .share-actions button {
+      flex: 1;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,.15);
+      background: rgba(255,255,255,.07);
+      color: #fff;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .share-actions button.primary-share { background: #6c3fc5; border-color: #6c3fc5; }
+
+    .powered {
+      position: fixed;
+      bottom: 12px;
+      font-size: 11px;
+      color: rgba(255,255,255,.2);
+    }
+
+    /* ── Feedback panel (post-call widget) ── */
+    .page.feedback-page {
+      justify-content: flex-end;
+      padding-bottom: 120px;
+    }
+    .feedback-panel {
+      width: 100%;
+      max-width: 420px;
+      background: #fff;
+      border-radius: 20px 20px 0 0;
+      color: #1a1a2e;
+      overflow: hidden;
+      box-shadow: 0 -8px 40px rgba(0,0,0,.4);
+    }
+    @media (min-width: 768px) {
+      .page.feedback-page { justify-content: center; padding-bottom: 100px; }
+      .feedback-panel { border-radius: 20px; max-width: 400px; }
+    }
+
+    .fb-quick {
+      display: flex;
+      border-bottom: 1px solid #eee;
+    }
+    .fb-quick-btn {
+      flex: 1;
+      padding: 18px 12px;
+      border: none;
+      background: #fff;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      color: #1a1a2e;
+    }
+    .fb-quick-btn:first-child { border-right: 1px solid #eee; }
+    .fb-quick-btn:hover { background: #fafafa; }
+    .fb-quick-btn.selected { background: #f5f0ff; }
+    .fb-thumb { font-size: 22px; line-height: 1; }
+
+    .fb-body { padding: 22px 20px 24px; }
+    .fb-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 20px;
+      border-bottom: 1px solid #eee;
+    }
+    .fb-header-icon {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: #ede8f8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .fb-header-icon svg { width: 20px; }
+    .fb-header-title { font-size: 16px; font-weight: 700; color: #1a1a2e; }
+    .fb-header-sub { font-size: 13px; color: #888; margin-top: 2px; }
+
+    .fb-label {
+      font-size: 17px;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 14px;
+      text-align: left;
+    }
+    .fb-stars {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 18px;
+    }
+    .fb-star {
+      font-size: 32px;
+      color: #ddd;
+      cursor: pointer;
+      line-height: 1;
+      background: none;
+      border: none;
+      padding: 0;
+    }
+    .fb-star.filled { color: #f5a623; }
+
+    .fb-textarea {
+      width: 100%;
+      min-height: 110px;
+      padding: 14px 16px;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      font-size: 14px;
+      font-family: inherit;
+      color: #333;
+      resize: none;
+      outline: none;
+      margin-bottom: 18px;
+    }
+    .fb-textarea::placeholder { color: #aaa; }
+    .fb-textarea:focus { border-color: #6c3fc5; }
+
+    .fb-submit {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      border: 2px solid #6c3fc5;
+      background: #fff;
+      color: #6c3fc5;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .fb-submit.active {
+      background: #6c3fc5;
+      color: #fff;
+    }
+    .fb-submit:disabled {
+      opacity: .45;
+      cursor: default;
+    }
+
+    .fb-thanks {
+      padding: 40px 24px;
+      text-align: center;
+      font-size: 17px;
+      font-weight: 600;
+      color: #1a1a2e;
+    }
+
+    .widget-bar.post-call { bottom: 24px; }
+    .wb-start {
+      background: #6c3fc5;
+      color: #fff;
+      font-weight: 700;
+      font-size: 15px;
+      flex: 1;
+      max-width: 100px;
+      border-radius: 12px;
+    }
+
+    /* ── Magic-link email mockup ── */
+    .page.email-page {
+      background: #f2f2f7;
+      padding: 56px 0 24px;
+      justify-content: flex-start;
+    }
+    .phone-frame {
+      width: 100%;
+      max-width: 390px;
+      background: #fff;
+      border-radius: 0;
+      overflow: hidden;
+      min-height: calc(100vh - 80px);
+      box-shadow: 0 0 0 1px rgba(0,0,0,.06);
+    }
+    @media (min-width: 768px) {
+      .phone-frame {
+        border-radius: 24px;
+        min-height: 720px;
+        box-shadow: 0 8px 40px rgba(0,0,0,.15);
+      }
+    }
+    .mail-nav {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      border-bottom: 1px solid #e5e5ea;
+      background: #f9f9f9;
+      gap: 12px;
+    }
+    .mail-back {
+      color: #6c3fc5;
+      font-size: 15px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+    }
+    .mail-subject-bar {
+      font-size: 13px;
+      font-weight: 600;
+      color: #1a1a2e;
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .mail-meta {
+      padding: 16px;
+      border-bottom: 1px solid #e5e5ea;
+    }
+    .mail-subject {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1a1a2e;
+      line-height: 1.3;
+      margin-bottom: 14px;
+    }
+    .mail-from-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .mail-avatar-sm {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: #6c3fc5;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .mail-from-name { font-size: 15px; font-weight: 600; color: #1a1a2e; }
+    .mail-from-detail { font-size: 13px; color: #888; }
+    .mail-to { font-size: 13px; color: #888; margin-top: 8px; }
+
+    .mail-body {
+      padding: 20px 16px 32px;
+      color: #333;
+      font-size: 15px;
+      line-height: 1.55;
+    }
+    .mail-body p { margin-bottom: 16px; }
+    .mail-agent-card {
+      background: #f5f0ff;
+      border: 1px solid #e0d4f7;
+      border-radius: 14px;
+      padding: 16px;
+      margin: 20px 0;
+      text-align: center;
+    }
+    .mail-agent-name { font-size: 18px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+    .mail-agent-co { font-size: 13px; color: #888; margin-bottom: 14px; }
+    .mail-cta {
+      display: inline-block;
+      padding: 14px 28px;
+      background: #6c3fc5;
+      color: #fff !important;
+      text-decoration: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+    }
+    .mail-cta:hover { background: #7d52d4; }
+    .mail-fine {
+      font-size: 12px;
+      color: #999;
+      line-height: 1.5;
+      margin-top: 20px;
+    }
+    .mail-footer {
+      padding: 16px;
+      border-top: 1px solid #e5e5ea;
+      text-align: center;
+      font-size: 11px;
+      color: #bbb;
+    }
+
+    @media (min-width: 768px) {
+      .page { padding-top: 72px; }
+      .avatar-wrap { width: 300px; height: 300px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="flow-label">End-user flow</div>
+
+<!-- Screen picker -->
+<div class="picker">
+  <span>Screen:</span>
+  <button class="active" onclick="show('gate')">1 Gate</button>
+  <button onclick="show('gate-error')">1b Wrong domain</button>
+  <button onclick="show('email-sent')">2 Check email</button>
+  <button onclick="show('email-inbox')">2b Email</button>
+  <button onclick="show('ready')">4 Agent ready</button>
+  <button onclick="show('in-call')">4b In call</button>
+  <button onclick="show('feedback')">5a Feedback</button>
+  <button onclick="show('feedback-filled')">5b Feedback filled</button>
+  <button onclick="show('feedback-thanks')">5c Feedback done</button>
+  <button onclick="show('done')">5d Share</button>
+</div>
+
+<!-- ── 1. GATE ── -->
+<div id="gate" class="page active">
+  <div class="card">
+    <div class="avatar-wrap" data-watermark></div>
+    <div class="agent-name">DanX</div>
+    <div class="company-name">Equal Exchange</div>
+    <p class="purpose">Your go-to for employee benefits, leave policy, and onboarding questions.</p>
+
+    <div class="field-group">
+      <label for="email">Work email</label>
+      <input id="email" type="email" placeholder="you@equalexchange.coop" />
+      <p class="hint">For Equal Exchange employees only</p>
+    </div>
+
+    <button class="btn-primary" onclick="show('email-sent')">
+      Continue
+    </button>
+  </div>
+  <p class="powered">Powered by ExpertX</p>
+</div>
+
+<!-- ── 1b. GATE — WRONG DOMAIN ── -->
+<div id="gate-error" class="page">
+  <div class="card">
+    <div class="avatar-wrap" data-watermark></div>
+    <div class="agent-name">DanX</div>
+    <div class="company-name">Equal Exchange</div>
+    <p class="purpose">Your go-to for employee benefits, leave policy, and onboarding questions.</p>
+
+    <div class="error-box">
+      <p>This agent is only for Equal Exchange employees. Please use your work email.</p>
+      <p class="sub">Personal email addresses aren't accepted.</p>
+    </div>
+
+    <div class="field-group">
+      <label for="email2">Work email</label>
+      <input id="email2" type="email" class="error" value="jane@gmail.com" />
+    </div>
+
+    <button class="btn-primary">Continue</button>
+  </div>
+  <p class="powered">Powered by ExpertX</p>
+</div>
+
+<!-- ── 2. CHECK EMAIL ── -->
+<div id="email-sent" class="page">
+  <div class="card">
+    <div class="email-icon">✉️</div>
+    <div class="agent-name" style="font-size:22px;margin-bottom:12px;">Check your email</div>
+    <p class="sent-to">We sent a link to</p>
+    <p class="sent-email">j***@equalexchange.coop</p>
+    <p class="purpose" style="margin-bottom:28px;">Tap the link in the email to start talking to DanX.</p>
+    <button class="btn-secondary">Resend link</button>
+    <button class="btn-secondary" style="margin-top:8px;" onclick="show('email-inbox')">Preview email ↗</button>
+    <button class="btn-secondary" style="margin-top:8px;" onclick="show('gate')">Use a different email</button>
+  </div>
+  <p class="powered">Powered by ExpertX</p>
+</div>
+
+<!-- ── 2b. MAGIC-LINK EMAIL ── -->
+<div id="email-inbox" class="page email-page">
+  <div class="phone-frame">
+    <div class="mail-nav">
+      <button class="mail-back" onclick="show('email-sent')">← Inbox</button>
+      <span class="mail-subject-bar">Your link to talk to DanX</span>
+    </div>
+    <div class="mail-meta">
+      <div class="mail-subject">Your link to talk to DanX</div>
+      <div class="mail-from-row">
+        <div class="mail-avatar-sm">EX</div>
+        <div>
+          <div class="mail-from-name">ExpertX</div>
+          <div class="mail-from-detail">noreply@x.growthspace.com</div>
+        </div>
+      </div>
+      <div class="mail-to">To: you@equalexchange.coop</div>
+    </div>
+    <div class="mail-body">
+      <p>Hi,</p>
+      <p>You requested access to talk to <strong>DanX</strong>, your Equal Exchange benefits assistant.</p>
+      <div class="mail-agent-card">
+        <div class="mail-agent-name">DanX</div>
+        <div class="mail-agent-co">Equal Exchange</div>
+        <button class="mail-cta" onclick="show('ready')">Start conversation</button>
+      </div>
+      <p>Tap the button above on your phone to open the agent and start a voice conversation.</p>
+      <p class="mail-fine">
+        This link works once and expires in 24 hours.<br>
+        If you didn't request this, you can safely ignore this email.
+      </p>
+    </div>
+    <div class="mail-footer">Powered by ExpertX · GrowthSpace</div>
+  </div>
+</div>
+
+<!-- ── 4. AGENT READY ── -->
+<div id="ready" class="page">
+  <div class="card">
+    <div class="avatar-wrap" data-watermark></div>
+    <div class="agent-name">DanX</div>
+    <div class="company-name">Equal Exchange</div>
+    <p class="purpose">Your go-to for employee benefits, leave policy, and onboarding questions.</p>
+
+    <p class="try-label">Try asking about…</p>
+    <div class="chips">
+      <div class="chip">What's our parental leave policy?</div>
+      <div class="chip">How do I enroll in health benefits?</div>
+      <div class="chip">What happens in my first week?</div>
+    </div>
+
+    <button class="btn-primary" onclick="show('in-call')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
+      Start a call with DanX
+    </button>
+  </div>
+  <p class="powered">Powered by ExpertX</p>
+</div>
+
+<!-- ── 4b. IN CALL ── -->
+<div id="in-call" class="page in-call">
+  <div class="card">
+    <div class="avatar-wrap" data-watermark></div>
+    <div class="agent-name">DanX</div>
+    <div class="wave-bars">
+      <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <p class="status-line">Listening…</p>
+  </div>
+
+  <div class="widget-bar">
+    <div class="wb-profile">
+      <svg viewBox="0 0 24 24" fill="#aaa"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+    </div>
+    <button class="wb-btn wb-chat">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    </button>
+    <button class="wb-btn wb-mic">
+      <svg viewBox="0 0 24 24" fill="#888"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+    </button>
+    <button class="wb-btn wb-end" onclick="show('feedback')">End</button>
+  </div>
+</div>
+
+<!-- ── 5a. FEEDBACK (open after End) ── -->
+<div id="feedback" class="page feedback-page">
+  <div class="feedback-panel">
+    <div class="fb-quick">
+      <button class="fb-quick-btn" onclick="show('feedback-filled')">
+        <span class="fb-thumb">👍</span>
+        Yes
+      </button>
+      <button class="fb-quick-btn" onclick="show('feedback-filled')">
+        <span class="fb-thumb">👎</span>
+        Not quite
+      </button>
+    </div>
+    <div class="fb-body">
+      <p class="fb-label">Score your experience</p>
+      <div class="fb-stars">
+        <button class="fb-star">★</button>
+        <button class="fb-star">★</button>
+        <button class="fb-star">★</button>
+        <button class="fb-star">★</button>
+        <button class="fb-star">★</button>
+      </div>
+      <textarea class="fb-textarea" placeholder="Share what stood out, what was helpful and what could be improved?"></textarea>
+      <button class="fb-submit" disabled>Submit feedback</button>
+    </div>
+  </div>
+  <div class="widget-bar post-call">
+    <div class="wb-profile">
+      <svg viewBox="0 0 24 24" fill="#6c3fc5"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+    </div>
+    <button class="wb-btn wb-chat">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    </button>
+    <button class="wb-btn wb-start" onclick="show('ready')">Start</button>
+  </div>
+</div>
+
+<!-- ── 5b. FEEDBACK — FILLED ── -->
+<div id="feedback-filled" class="page feedback-page">
+  <div class="feedback-panel">
+    <div class="fb-quick">
+      <button class="fb-quick-btn selected">
+        <span class="fb-thumb">👍</span>
+        Yes
+      </button>
+      <button class="fb-quick-btn">
+        <span class="fb-thumb">👎</span>
+        Not quite
+      </button>
+    </div>
+    <div class="fb-body">
+      <p class="fb-label">Score your experience</p>
+      <div class="fb-stars">
+        <button class="fb-star filled">★</button>
+        <button class="fb-star filled">★</button>
+        <button class="fb-star filled">★</button>
+        <button class="fb-star filled">★</button>
+        <button class="fb-star">★</button>
+      </div>
+      <textarea class="fb-textarea" placeholder="Share what stood out, what was helpful and what could be improved?"></textarea>
+      <button class="fb-submit active" onclick="show('feedback-thanks')">Submit feedback</button>
+    </div>
+  </div>
+  <div class="widget-bar post-call">
+    <div class="wb-profile">
+      <svg viewBox="0 0 24 24" fill="#6c3fc5"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+    </div>
+    <button class="wb-btn wb-chat">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    </button>
+    <button class="wb-btn wb-start" onclick="show('ready')">Start</button>
+  </div>
+</div>
+
+<!-- ── 5c. FEEDBACK — THANKS ── -->
+<div id="feedback-thanks" class="page feedback-page">
+  <div class="feedback-panel">
+    <div class="fb-header">
+      <div class="fb-header-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#6c3fc5" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      </div>
+      <div>
+        <div class="fb-header-title">Quick feedback</div>
+        <div class="fb-header-sub">Help us to improve</div>
+      </div>
+    </div>
+    <p class="fb-thanks">Thanks, glad we could help!</p>
+  </div>
+  <div class="widget-bar post-call">
+    <div class="wb-profile">
+      <svg viewBox="0 0 24 24" fill="#6c3fc5"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+    </div>
+    <button class="wb-btn wb-chat">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    </button>
+    <button class="wb-btn wb-start" onclick="show('done')">Start</button>
+  </div>
+</div>
+
+<!-- ── 5d. AFTER CALL — SHARE ── -->
+<div id="done" class="page">
+  <div class="card">
+    <div class="avatar-wrap avatar-wrap--sm" data-watermark></div>
+    <div class="agent-name" style="font-size:22px;">Thanks for chatting with DanX</div>
+    <p class="purpose" style="margin-bottom:24px;">Hope that helped.</p>
+
+    <div class="share-box">
+      <p>Know someone who'd find this useful? Forward this link.</p>
+      <div class="share-actions">
+        <button class="primary-share">Copy link</button>
+        <button>Share</button>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="show('ready')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
+      Talk again
+    </button>
+  </div>
+  <p class="powered">Powered by ExpertX</p>
+</div>
+
+<script>
+  /* Animated orbit watermark — ported from growthspace-prototype/nira */
+  function gsWatermarkSVG(suffix) {
+    const s = suffix || '';
+    return `
+<svg viewBox="0 0 330 420" fill="none" aria-hidden="true">
+  <defs>
+    <mask id="gsWmCut${s}">
+      <rect width="330" height="420" fill="#fff"></rect>
+      <circle cx="165" cy="150" r="42" fill="#000"></circle>
+    </mask>
+  </defs>
+  <g fill="none" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round">
+    <g opacity="0.07" stroke-width="1">
+      <circle cx="165" cy="170" r="96"></circle>
+      <g transform="rotate(22 165 170)"><ellipse cx="165" cy="170" rx="96" ry="40"></ellipse></g>
+      <g transform="rotate(-16 165 170)"><ellipse cx="165" cy="170" rx="66" ry="96"></ellipse></g>
+    </g>
+    <g opacity="0.10" stroke-width="2">
+      <circle cx="165" cy="150" r="33"></circle>
+      <path d="M113 240 a52 52 0 0 1 104 0" mask="url(#gsWmCut${s})"></path>
+    </g>
+  </g>
+  <g fill="#ffffff">
+    <circle r="2.8" opacity="0.85">
+      <animateMotion dur="14s" repeatCount="indefinite"
+        path="M165,74 a96,96 0 1,0 0,192 a96,96 0 1,0 0,-192"></animateMotion>
+      <animate attributeName="opacity" values="0.2;0.9;0.2" dur="14s" repeatCount="indefinite"></animate>
+    </circle>
+    <g transform="rotate(22 165 170)">
+      <circle r="2.4" opacity="0.7">
+        <animateMotion dur="11s" repeatCount="indefinite" begin="-4s"
+          path="M69,170 a96,40 0 1,0 192,0 a96,40 0 1,0 -192,0"></animateMotion>
+      </circle>
+    </g>
+    <g transform="rotate(-16 165 170)">
+      <circle r="2.2" opacity="0.6">
+        <animateMotion dur="17s" repeatCount="indefinite" begin="-9s"
+          path="M99,170 a66,96 0 1,0 132,0 a66,96 0 1,0 -132,0"></animateMotion>
+      </circle>
+    </g>
+  </g>
+</svg>`;
+  }
+
+  document.querySelectorAll('[data-watermark]').forEach((el, i) => {
+    el.innerHTML = gsWatermarkSVG('-' + i);
+  });
+
+  function show(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.querySelectorAll('.picker button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.picker button').forEach(b => {
+      if (b.getAttribute('onclick') === `show('${id}')`) b.classList.add('active');
+    });
+  }
+</script>
+</body>
+</html>
