@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Competitor UI — Domain / Scope Setup (Reference Mockups)</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #111;
+      color: #1a1a1a;
+      min-height: 100vh;
+    }
+
+    .picker {
+      position: sticky; top: 0; z-index: 200;
+      background: #0d0d12;
+      padding: 10px 16px;
+      display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+      border-bottom: 1px solid #333;
+    }
+    .picker-label {
+      color: #666; font-size: 10px; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase; margin-right: 6px;
+    }
+    .picker button {
+      background: #1e1e28; border: 1px solid #333; color: #aaa;
+      padding: 5px 12px; border-radius: 16px; font-size: 11px;
+      cursor: pointer; font-family: inherit;
+    }
+    .picker button:hover { color: #fff; border-color: #555; }
+    .picker button.active { background: #5D1C5F; border-color: #5D1C5F; color: #fff; }
+    .picker .expertx { background: #2a1a2e; border-color: #5D1C5F; color: #e8c4ea; }
+    .picker .expertx.active { background: #5D1C5F; color: #fff; }
+
+    .page { display: none; padding: 24px 16px 48px; }
+    .page.active { display: block; }
+
+    .frame-header {
+      max-width: 960px; margin: 0 auto 12px;
+      display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+    }
+    .frame-header h2 { color: #fff; font-size: 16px; font-weight: 650; }
+    .frame-header p { color: #888; font-size: 12px; max-width: 520px; line-height: 1.45; }
+    .tag {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.06em; padding: 3px 8px; border-radius: 4px;
+      background: #222; color: #aaa; white-space: nowrap;
+    }
+
+    .browser {
+      max-width: 960px; margin: 0 auto;
+      border-radius: 12px; overflow: hidden;
+      border: 1px solid #333;
+      box-shadow: 0 24px 80px rgba(0,0,0,.5);
+    }
+    .chrome {
+      background: #2a2a32; padding: 10px 14px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .dots { display: flex; gap: 5px; }
+    .dots i { width: 10px; height: 10px; border-radius: 50%; display: block; }
+    .dots i:nth-child(1) { background: #ff5f57; }
+    .dots i:nth-child(2) { background: #febc2e; }
+    .dots i:nth-child(3) { background: #28c840; }
+    .url { flex: 1; background: #1a1a22; border-radius: 6px; padding: 5px 12px; font-size: 11px; color: #888; }
+
+    .ui { background: #fff; min-height: 480px; }
+
+    /* ── Shared helpers ── */
+    .split { display: grid; grid-template-columns: 1fr 1fr; min-height: 480px; }
+    @media (max-width: 720px) { .split { grid-template-columns: 1fr; } }
+    .panel { padding: 20px; }
+    .panel-muted { background: #f7f7f8; }
+    .label-sm { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; }
+    .field { border: 1px solid #ddd; border-radius: 8px; padding: 10px 12px; font-size: 13px; color: #333; background: #fff; margin-bottom: 10px; }
+    .field.ghost { color: #999; }
+    .field.filled { min-height: 80px; line-height: 1.5; }
+    .btn {
+      display: inline-block; padding: 8px 16px; border-radius: 8px;
+      font-size: 13px; font-weight: 600; border: none; cursor: default;
+    }
+    .btn-dark { background: #111; color: #fff; }
+    .btn-green { background: #10a37f; color: #fff; }
+    .btn-blue { background: #0078d4; color: #fff; }
+    .btn-purple { background: #5D1C5F; color: #fff; }
+    .btn-outline { background: #fff; border: 1px solid #ddd; color: #333; }
+    .tabs { display: flex; gap: 0; border-bottom: 1px solid #e5e5e5; margin-bottom: 16px; }
+    .tab { padding: 10px 16px; font-size: 13px; color: #888; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+    .tab.on { color: #111; border-color: #10a37f; font-weight: 600; }
+    .bubble { border-radius: 12px; padding: 10px 12px; font-size: 13px; line-height: 1.45; margin-bottom: 8px; max-width: 92%; }
+    .bubble.user { background: #f0f0f0; margin-left: auto; }
+    .bubble.ai { background: #f7f7f8; border: 1px solid #eee; }
+    .step-row { display: flex; gap: 4px; margin-bottom: 20px; font-size: 11px; }
+    .step-pill { padding: 4px 10px; border-radius: 20px; background: #eee; color: #666; }
+    .step-pill.on { background: #0078d4; color: #fff; }
+    .step-pill.done { background: #e8f4fd; color: #0078d4; }
+    .sidebar { width: 200px; background: #1a1a22; color: #aaa; padding: 16px 12px; font-size: 12px; }
+    .sidebar .item { padding: 8px 10px; border-radius: 6px; margin-bottom: 2px; }
+    .sidebar .item.on { background: #2d2d3a; color: #fff; }
+    .layout-sidebar { display: flex; min-height: 480px; }
+    .main { flex: 1; padding: 20px; }
+    .callout { font-size: 12px; color: #666; background: #f9f9fb; border-left: 3px solid #5D1C5F; padding: 10px 12px; margin-top: 16px; line-height: 1.45; }
+    .annotation {
+      max-width: 960px; margin: 14px auto 0;
+      font-size: 12px; color: #777; line-height: 1.5;
+    }
+    .annotation strong { color: #aaa; }
+    h3.ui-title { font-size: 18px; font-weight: 650; margin-bottom: 4px; }
+    .ui-sub { font-size: 13px; color: #666; margin-bottom: 16px; }
+
+    /* OpenAI */
+    .openai .preview { background: #f9f9f9; border-left: 1px solid #eee; }
+    .openai .gpt-name { font-size: 15px; font-weight: 650; margin-bottom: 12px; }
+
+    /* Copilot */
+    .copilot { background: linear-gradient(180deg, #f5f8fc 0%, #fff 40%); padding: 32px 24px; text-align: center; }
+    .copilot .hero-input {
+      max-width: 520px; margin: 20px auto 0; text-align: left;
+      border: 1px solid #c8d4e8; border-radius: 12px; padding: 14px 16px;
+      font-size: 14px; color: #666; min-height: 88px; background: #fff;
+      box-shadow: 0 2px 12px rgba(0,120,212,.08);
+    }
+
+    /* Dust */
+    .dust .sidekick {
+      background: #faf8ff; border-left: 1px solid #e8e0f5;
+      display: flex; flex-direction: column;
+    }
+    .dust .sidekick-hd { padding: 12px 16px; border-bottom: 1px solid #e8e0f5; font-size: 13px; font-weight: 650; color: #5b4a7a; }
+
+    /* Voiceflow */
+    .vf-topbar { background: #0f0f14; color: #fff; padding: 10px 16px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; }
+    .vf-generate { display: flex; gap: 8px; align-items: flex-start; }
+    .vf-generate .sparkle { background: #6366f1; color: #fff; border: none; border-radius: 6px; padding: 8px 12px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+
+    /* Outermind */
+    .om-select { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
+    .om-card { border: 2px solid #e5e5e5; border-radius: 8px; padding: 12px; text-align: center; font-size: 12px; }
+    .om-card.on { border-color: #2563eb; background: #eff6ff; }
+
+    /* Hyland summary */
+    .summary-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 13px; }
+    .summary-row span:first-child { color: #888; }
+
+    /* Glean admin */
+    .glean { background: #f4f5f7; }
+    .glean .admin-hd { background: #fff; border-bottom: 1px solid #ddd; padding: 12px 20px; font-size: 14px; font-weight: 650; }
+    .glean .rule { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px 12px; margin-bottom: 8px; font-size: 13px; display: flex; justify-content: space-between; }
+  </style>
+</head>
+<body>
+
+<nav class="picker">
+  <span class="picker-label">Compare</span>
+  <button type="button" class="expertx active" data-p="expertx">ExpertX (ours)</button>
+  <button type="button" data-p="openai">OpenAI GPT</button>
+  <button type="button" data-p="copilot">Copilot Studio</button>
+  <button type="button" data-p="dust">Dust</button>
+  <button type="button" data-p="voiceflow">Voiceflow</button>
+  <button type="button" data-p="outermind">Outermind</button>
+  <button type="button" data-p="hyland">Hyland</button>
+  <button type="button" data-p="elevenlabs">ElevenLabs</button>
+  <button type="button" data-p="glean">Glean</button>
+</nav>
+
+<!-- ═══ EXPERTX ═══ -->
+<section class="page active" id="p-expertx">
+  <div class="frame-header">
+    <div>
+      <h2>ExpertX — proposed flow</h2>
+      <p>Structured questions first → generated paragraph → review. Domain before knowledge upload.</p>
+    </div>
+    <span class="tag">Answer → Review</span>
+  </div>
+  <div class="browser">
+    <div class="chrome"><div class="dots"><i></i><i></i><i></i></div><div class="url">x.growthspace.com · Step 1 Domain</div></div>
+    <div class="ui" style="padding:24px; max-width:560px; margin:0 auto;">
+      <div class="step-row">
+        <span class="step-pill on">1 Answer</span>
+        <span class="step-pill">2 Review</span>
+        <span style="flex:1"></span>
+        <span style="font-size:11px;color:#888;">1. Domain → 2. Knowledge → …</span>
+      </div>
+      <h3 class="ui-title">What is your agent about?</h3>
+      <p class="ui-sub">Three short answers. We'll turn them into your domain paragraph.</p>
+      <div class="label-sm">Your expertise</div>
+      <div class="field ghost">HR specialist — employee benefits and people policy</div>
+      <div class="label-sm">Who it helps</div>
+      <div class="field ghost">Employees and managers</div>
+      <div class="label-sm">What it answers</div>
+      <div class="field ghost">Benefits enrollment, leave, onboarding, role changes…</div>
+      <div class="btn btn-purple" style="width:100%;text-align:center;margin-top:8px;">Create domain paragraph</div>
+      <p style="text-align:center;font-size:12px;color:#888;margin-top:12px;">I'd rather write the paragraph myself</p>
+    </div>
+  </div>
+  <p class="annotation"><strong>Then →</strong> Review screen shows generated paragraph only. User edits if needed, clicks <strong>Looks good — continue</strong> → Knowledge upload.</p>
+</section>
+
+<!-- ═══ OPENAI ═══ -->
+<section class="page" id="p-openai">
+  <div class="frame-header">
+    <div>
+      <h2>OpenAI — Custom GPT Builder</h2>
+      <p>Conversational "Create" tab drafts instructions. User switches to "Configure" to fine-tune. Knowledge is a separate upload section.</p>
+    </div>
+    <span class="tag">Chat → Configure</span>
+  </div>
+  <div class="browser">
+    <div class="chrome"><div class="dots"><i></i><i></i><i></i></div><div class="url">chatgpt.com/gpts/editor · Create</div></div>
+    <div class="ui openai split">
+      <div class="panel">
+        <div class="tabs">
+          <div class="tab on">Create</div>
+          <div class="tab">Configure</div>
+        </div>
+        <div class="bubble ai">Hi! I'll help you build a new GPT. What would you like it to do?</div>
+        <div class="bubble user">Make an HR assistant that helps employees with benefits, leave, and onboarding questions.</div>
+        <div class="bubble ai">Got it. I'll create an HR policy assistant for employees and managers. I've drafted instructions — check the preview. Want to add knowledge files?</div>
+        <div class="field" style="margin-top:12px;color:#999;">Message GPT Builder…</div>
+      </div>
+      <div class="panel preview">
+        <div class="label-sm">Preview</div>
+        <div class="gpt-name">HR Policy Assistant</div>
+        <div class="field filled" style="font-size:12px;">You are an HR specialist helping employees and managers with benefits enrollment, leave policies, onboarding, and role changes. Answer only from uploaded documents…</div>
+        <p style="font-size:11px;color:#888;margin-top:8px;">↗ Instructions auto-filled in Configure tab</p>
+      </div>
+    </div>
+  </div>
+  <p class="annotation"><strong>No structured fields.</strong> Free conversation scaffolds the instructions. Approval = test preview → Save/Publish.</p>
+</section>
+
+<!-- ═══ COPILOT ═══ -->
+<section class="page" id="p-copilot">
+  <div class="frame-header">
+    <div>
+      <h2>Microsoft Copilot Studio</h2>
+      <p>Single text box on home screen. AI generates name, description, and full instructions from one description.</p>
+    </div>
+    <span class="tag">Describe → AI generates</span>
+  </div>
+  <div class="browser">
+    <div class="chrome"><div class="dots"><i></i><i></i><i></i></div><div class="url">copilotstudio.microsoft.com · Home</div></div>
+    <div class="ui copilot">
+      <div style="font-size:22px;font-weight:650;color:#1a1a1a;margin-bottom:4px;">What should your agent do?</div>
+      <p style="font-size:14px;color:#666;">Describe it in your own words — we'll set up the rest.</p>
+      <div class="hero-input">Help employees and managers with HR questions — benefits enrollment, leave requests, onboarding steps, and how company policy applies to their situation.</div>
+      <div style="margin-top:16px;"><span class="btn btn-blue">Create agent</span></div>
+      <p style="font-size:12px;color:#888;margin-top:20px;">↓ AI suggests: name · description · instructions · knowledge sources · tools</p>
+    </div>
+  </div>
+  <p class="annotation"><strong>One paragraph in, full config out.</strong> Closest to "generate from description." User refines in Build tab → connects knowledge → Preview.</p>
+</section>
+
+<!-- ═══ DUST ═══ -->
+<section class="page" id="p-dust">
+  <div class="frame-header">
+    <div>
+      <h2>Dust — Agent Builder + Sidekick</h2>
+      <p>AI co-pilot in a side panel. User describes the goal; Sidekick drafts instructions and suggests data sources. Accept/reject diffs.</p>
+    </div>
+    <span class="tag">Sidekick chat</span>
+  </div>
+  <div class="browser">
+    <div class="chrome"><div class="dots"><i></i><i></i><i></i></div><div class="url">dust.tt · Agent Builder</div></div>
+    <div class="ui dust split">
+      <div class="panel">
+        <div class="label-sm">Instructions</div>
+        <div class="field filled" style="font-size:12px;min-height:120px;border:2px solid #c4b5fd;">You are an HR assistant for Acme Corp. Help employees find answers about benefits, leave, and onboarding in company policy documents. Never invent policy…</div>
+        <div style="display:flex;gap:8px;margin:8px 0 16px;">
+          <span class="btn btn-outline" style="font-size:11px;padding:4px 10px;">Accept</span>
+          <span class="btn btn-outline" style="font-size:11px;padding:4px 10px;">Reject</span>
+        </div>
+        <div class="label-sm">Knowledge &amp; tools</div>
+        <div class="field" style="font-size:12px;">☑ Notion · HR Policies &nbsp; ☐ Google Drive &nbsp; ☐ Web search</div>
+      </div>
+      <div class="panel sidekick">
+        <div class="sidekick-hd">✦ Sidekick</div>
+        <div style="padding:12px;flex:1;">
+          <div class="bubble user" style="font-size:12px;">I need an agent that answers HR policy questions for employees using our Notion docs.</div>
+          <div class="bubble ai" style="font-size:12px;">I drafted instructions and connected Notion. Review the diff on the left — want me to add guardrails for out-of-scope questions?</div>
+          <div class="field ghost" style="font-size:12px;margin-top:8px;">Reply to Sidekick…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="annotation"><strong>Approval = accept/reject</strong> on AI-drafted instruction diffs. Knowledge connected in same builder, after instructions.</p>
+</section>
+
+<!-- ═══ VOICEFLOW ═══ -->
+<section class="page" id="p-voiceflow">
+  <div class="frame-header">
+    <div>
+      <h2>Voiceflow — Generate system prompt</h2>
+      <p>Short description + "Generate" button produces the full agent prompt. Knowledge base is a separate sidebar step.</p>
+    </div>
+    <span class="tag">Generate button</span>
+  </div>
+  <div class="browser">
+    <div class="chrome"><div class="dots"><i></i><i></i><i></i></div><div class="url">creator.voiceflow.com · Global agent</div></div>
+    <div class="vf-topbar"><span>Acme HR Agent</span><span class="btn" style="background:#6366f1;font-size:11px;padding:6px 12px;">Publish</span></div>
+    <div class="ui layout-sidebar">
+      <div class="sidebar">
+        <div class="item on">Agent</div>
+        <div class="item">Knowledge Base</div>
+        <div class="item">Workflows</div>
+      </div>
+      <div class="main">
+        <h3 class="ui-title">Global agent description</h3>
+        <p class="ui-sub">Define personality, goals, and behavior.</p>
+        <div class="vf-generate">
+          <div class="field ghost" style="flex:1;margin:0;">Friendly HR agent. Helps employees with benefits, leave, onboarding. Professional tone. Escalate if unsure.</div>
+          <span class="sparkle">✦ Generate</span>
+        </div>
+        <div class="label-sm" style="margin-top:16px;">Generated prompt</div>
+        <div class="field filled" style="font-size:12px;">You are Alex, a friendly HR support agent for Acme Corp. You help employees and managers with benefits enrollment, leave requests, onboarding, and policy questions. Be concise and professional. If you cannot answer from the knowledge base, offer to create a ticket…</div>
+      </div>
+    </div>
+  </div>
+  <p class="annotation"><strong>Very close to ExpertX Review step</strong> — but input is one short blurb, not three fields. No explicit approve; user edits prompt then publishes.</p>
+</section>
+
+<!-- ═══ OUTERMIND ═══ -->
+<section class="page" id="p-outermind">
+  <div class="frame-header">
+    <div>
+      <h2>Outermind — SME Creation Wizard</h2>
+      <p>Pick a domain, fill identity + purpose statement. Wizard auto-generates full instructions. 6 steps with tool recommendations.</p>
+    </div>
+    <span class="tag">6-step wizard</span>
+  </div>
+  <div class="browser">
+    <div class="chrome"><div class="dots"><i></i><i></i><i></i></div><div class="url">app.outermind.ai · Create SME · Step 1</div></div>
+    <div class="ui" style="padding:24px;">
+      <div class="step-row">
+        <span class="step-pill on">1 Domain</span>
+        <span class="step-pill">2 Identity</span>
+        <span class="step-pill">3 Capabilities</span>
+        <span class="step-pill">…</span>
+        <span class="step-pill">6 Review</span>
+      </div>
+      <h3 class="ui-title">Choose a domain</h3>
+      <p class="ui-sub">We'll pre-select tools and draft instructions for this area.</p>
+      <div class="om-select">
+        <div class="om-card">Finance</div>
+        <div class="om-card on">HR / People</div>
+        <div class="om-card">Legal</div>
+        <div class="om-card">Engineering</div>
+        <div class="om-card">Support</div>
+        <div class="om-card">Custom</div>
+      </div>
+      <div class="label-sm">Purpose statement</div>
+      <div class="field filled" style="font-size:13px;">Answer employee questions about benefits enrollment, leave policies, onboarding procedures, and HR compliance using company documentation.</div>
+      <div style="margin-top:16px;text-align:right;"><span class="btn btn-blue">Next →</span></div>
+    </div>
+  </div>
+  <p class="annotation"><strong>Step 6 = Summary review</strong> before create. Auto-generates full prompt from domain + purpose. Closest structured wizard to ExpertX.</p>
+</section>
+
+<!-- ═══ HYLAND ═══ -->
+<section class="page" id="p-hyland">
+  <div class="frame-header">
+    <div>
+      <h2>Hyland Knowledge Discovery</h2>
+      <p>Step 1 defines "Expertise" (content scope + guardrails). Final Summary screen before Create Agent.</p>
+    </div>
+    <span class="tag">Summary approve</span>
+  </div>
+  <div class="browser">
+    <div class="chrome"><div class="dots"><i></i><i></i><i></i></div><div class="url">Hyland · Agent wizard · Summary</div></div>
+    <div class="ui" style="padding:24px;">
+      <div class="step-row">
+        <span class="step-pill done">Expertise</span>
+        <span class="step-pill done">Access</span>
+        <span class="step-pill done">Personality</span>
+        <span class="step-pill on">Summary</span>
+      </div>
+      <h3 class="ui-title">Review agent configuration</h3>
+      <p class="ui-sub">Confirm before creating the agent.</p>
+      <div style="background:#f9f9fb;border-radius:8px;padding:4px 16px;margin-bottom:16px;">
+        <div class="summary-row"><span>Agent name</span><span>HR Policy Assistant</span></div>
+        <div class="summary-row"><span>Content scope</span><span>HR policies, benefits docs</span></div>
+        <div class="summary-row"><span>Advanced instructions</span><span>You work only with HR documents…</span></div>
+        <div class="summary-row" style="border:none;"><span>Audience</span><span>All employees</span></div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <span class="btn btn-outline">← Previous</span>
+        <span class="btn btn-blue">Create Agent</span>
+      </div>
+    </div>
+  </div>
+  <p class="annotation"><strong>"Create Agent" = approval.</strong> Scope defined in step 1 (Expertise), confirmed on Summary. Personality step has optional scope hint in Advanced Instructions.</p>
+</section>
+
+<!-- ═══ ELEVENLABS ═══ -->
+<section class="page" id="p-elevenlabs">
+  <div class="frame-header">
+    <div>
+      <h2>ElevenLabs Conversational AI</h2>
+      <p>No guided domain wizard. System prompt field + separate Knowledge Base tab. Best practice: keep focus narrow.</p>
+    </div>
+    <span class="tag">Prompt + KB tabs</span>
+  </div>
+  <div class="browser">
+    <div class="chrome"><div class="dots"><i></i><i></i><i></i></div><div class="url">elevenlabs.io · Agent · HR Assistant</div></div>
+    <div class="ui layout-sidebar">
+      <div class="sidebar" style="width:180px;">
+        <div class="item on">Agent</div>
+        <div class="item">Knowledge Base</div>
+        <div class="item">Voice</div>
+        <div class="item">Security</div>
+      </div>
+      <div class="main">
+        <h3 class="ui-title">System prompt</h3>
+        <p class="ui-sub">Define agent behavior and scope.</p>
+        <div class="field filled" style="font-size:12px;min-height:100px;font-family:monospace;">You are an HR assistant. Answer questions about benefits, leave, and onboarding using the knowledge base only. If information is not in the KB, say you don't know.</div>
+        <div class="callout">Knowledge Base (separate tab): upload PDF, URL, or text. Enable RAG for large doc sets.</div>
+      </div>
+    </div>
+  </div>
+  <p class="annotation"><strong>ExpertX voice layer.</strong> No scaffolding for domain — assumes you already have a prompt. ExpertX adds the guided flow upstream.</p>
+</section>
+
+<!-- ═══ GLEAN ═══ -->
+<section class="page" id="p-glean">
+  <div class="frame-header">
+    <div>
+      <h2>Glean — Admin Assistant config</h2>
+      <p>IT admin sets custom instructions (behavior) and content rules (scope) separately. Not an end-user creation wizard.</p>
+    </div>
+    <span class="tag">Admin only</span>
+  </div>
+  <div class="browser">
+    <div class="chrome"><div class="dots"><i></i><i></i><i></i></div><div class="url">app.glean.com/admin · Assistant → Advanced</div></div>
+    <div class="ui glean">
+      <div class="admin-hd">Platform → Assistant → Advanced</div>
+      <div style="padding:20px;">
+        <div class="label-sm">Custom instructions (max 5)</div>
+        <div class="rule"><span>Do not respond to salary or compensation questions.</span><span style="color:#888;">✎</span></div>
+        <div class="rule"><span>For IT support, prefer Zendesk articles.</span><span style="color:#888;">✎</span></div>
+        <div class="rule" style="color:#0078d4;border-style:dashed;">+ Add instruction</div>
+        <div class="label-sm" style="margin-top:20px;">Exclusion rules (content scope)</div>
+        <div class="rule"><span>Exclude: Executive compensation folder</span><span style="color:#888;">✎</span></div>
+        <p style="font-size:11px;color:#888;margin-top:8px;">Instructions shape responses. Rules shape what content the LLM can access.</p>
+      </div>
+    </div>
+  </div>
+  <p class="annotation"><strong>Different audience</strong> (admin vs expert). Useful pattern: split <strong>behavior instructions</strong> from <strong>content scope rules</strong>.</p>
+</section>
+
+<script>
+  document.querySelectorAll('.picker button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.picker button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('p-' + btn.dataset.p).classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>
