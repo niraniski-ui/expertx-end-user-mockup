@@ -627,6 +627,37 @@
       color: #bbb;
     }
 
+    /* ── Post-call summary email ── */
+    .mail-summary {
+      background: #f8f7fc;
+      border: 1px solid #e8e4f2;
+      border-radius: 14px;
+      padding: 16px;
+      margin: 16px 0 20px;
+      text-align: left;
+    }
+    .mail-summary h3 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin: 0 0 6px;
+    }
+    .mail-summary h3:not(:first-child) { margin-top: 14px; }
+    .mail-summary p {
+      font-size: 14px;
+      color: #444;
+      margin: 0 0 4px;
+      line-height: 1.45;
+    }
+    .mail-summary ul {
+      margin: 0;
+      padding-left: 18px;
+      font-size: 14px;
+      color: #444;
+      line-height: 1.45;
+    }
+    .mail-summary li { margin-bottom: 4px; }
+
     @media (min-width: 768px) {
       .page { padding-top: 72px; }
       .avatar-wrap { width: 300px; height: 300px; }
@@ -650,6 +681,7 @@
   <button onclick="show('feedback-filled')">5b Feedback filled</button>
   <button onclick="show('feedback-thanks')">5c Feedback done</button>
   <button onclick="show('done')">5d Share</button>
+  <button onclick="show('post-call-email')">6 Post-call email</button>
 </div>
 
 <!-- ── 1. GATE ── -->
@@ -913,8 +945,57 @@
       <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
       Talk again
     </button>
+    <button class="btn-secondary" style="margin-top:12px;" onclick="show('post-call-email')">Preview post-call email ↗</button>
   </div>
   <p class="powered">Powered by ExpertX</p>
+</div>
+
+<!-- ── 6. POST-CALL SUMMARY EMAIL ── -->
+<div id="post-call-email" class="page email-page">
+  <div class="phone-frame">
+    <div class="mail-nav">
+      <button class="mail-back" onclick="show('done')">← Inbox</button>
+      <span class="mail-subject-bar">Your call with DanX — summary</span>
+    </div>
+    <div class="mail-meta">
+      <div class="mail-subject">Your call with DanX — summary</div>
+      <div class="mail-from-row">
+        <div class="mail-avatar-sm">EX</div>
+        <div>
+          <div class="mail-from-name">ExpertX</div>
+          <div class="mail-from-detail">noreply@x.growthspace.com</div>
+        </div>
+      </div>
+      <div class="mail-to">To: you@equalexchange.coop</div>
+    </div>
+    <div class="mail-body">
+      <p>Hi,</p>
+      <p>Here’s a short summary of your conversation with <strong>DanX</strong>. This email is only for you.</p>
+      <div class="mail-summary">
+        <h3>Session summary</h3>
+        <p>Jul 14, 2026 (Employee benefits)</p>
+        <h3>Main goal</h3>
+        <p>Understand parental leave eligibility and how to start enrollment.</p>
+        <h3>Key takeaways</h3>
+        <ul>
+          <li>Parental leave is available after 6 months of employment.</li>
+          <li>Enrollment starts in the benefits portal under Life Events.</li>
+          <li>Submit the leave form at least 30 days before the planned start.</li>
+        </ul>
+        <h3>Next steps</h3>
+        <ul>
+          <li>Open the benefits portal and review the Life Events checklist.</li>
+          <li>Ask DanX again if you need help with the enrollment form.</li>
+        </ul>
+      </div>
+      <div class="mail-agent-card">
+        <div class="mail-agent-name">DanX</div>
+        <div class="mail-agent-co">Equal Exchange</div>
+        <button class="mail-cta" onclick="show('ready')">Talk again</button>
+      </div>
+    </div>
+    <div class="mail-footer">Powered by ExpertX · GrowthSpace</div>
+  </div>
 </div>
 
 <script>
