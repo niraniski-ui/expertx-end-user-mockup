@@ -1,0 +1,551 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ExpertX - Extractor improvement plan</title>
+  <style>
+    :root {
+      --paper: #f6f7f9;
+      --sheet: #ffffff;
+      --ink: #171a21;
+      --muted: #626a78;
+      --line: #d9dde5;
+      --accent: #2e5d50;
+      --accent-light: #e9f1ee;
+      --hard: #8d2f2f;
+      --soft: #735b16;
+    }
+    * { box-sizing: border-box; }
+    html { color-scheme: light; scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      line-height: 1.55;
+    }
+    main { width: min(960px, calc(100% - 32px)); margin: 0 auto; padding: 64px 0 88px; }
+    .masthead { border-bottom: 2px solid var(--ink); padding-bottom: 28px; margin-bottom: 24px; }
+    .eyebrow { margin: 0 0 10px; color: var(--accent); font-size: .78rem; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+    h1, h2, h3, h4 { font-family: Georgia, "Times New Roman", serif; line-height: 1.14; }
+    h1 { max-width: 760px; margin: 0; font-size: clamp(2.25rem, 6vw, 4.2rem); letter-spacing: -.035em; }
+    .subtitle { max-width: 680px; margin: 18px 0 0; color: var(--muted); font-size: 1.08rem; }
+    .legend { display: flex; flex-wrap: wrap; gap: 10px 20px; margin: 22px 0 28px; color: var(--muted); font-size: .88rem; }
+    .legend span { display: inline-flex; align-items: center; gap: 7px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+    .plan { display: grid; gap: 12px; }
+    details.point { background: var(--sheet); border: 1px solid var(--line); border-radius: 3px; overflow: clip; }
+    details.point[open] { border-color: #aeb5c0; box-shadow: 0 5px 24px rgba(28, 34, 44, .06); }
+    summary { list-style: none; cursor: pointer; }
+    summary::-webkit-details-marker { display: none; }
+    .point-summary {
+      display: grid;
+      grid-template-columns: 44px 1fr auto;
+      align-items: center;
+      gap: 14px;
+      min-height: 84px;
+      padding: 16px 20px;
+    }
+    .number {
+      display: grid; place-items: center;
+      width: 38px; height: 38px;
+      border: 1.5px solid var(--ink); border-radius: 50%;
+      font-family: Georgia, "Times New Roman", serif; font-size: 1.14rem; font-weight: 700;
+    }
+    .point-summary h2 { margin: 0 0 4px; font-size: clamp(1.2rem, 3vw, 1.55rem); }
+    .point-summary p { margin: 0; color: var(--muted); font-size: .9rem; }
+    .chevron { font-size: 1.7rem; line-height: 1; transition: transform .18s ease; }
+    details[open] > summary .chevron { transform: rotate(90deg); }
+    .point-body { border-top: 1px solid var(--line); padding: 24px 28px 28px 78px; }
+    .check {
+      margin: 0 0 20px;
+      padding: 10px 13px;
+      border-left: 3px solid var(--accent);
+      background: var(--accent-light);
+      font-size: .91rem;
+    }
+    .summary-text { margin: 0 0 20px; font-size: 1.08rem; }
+    h3 { margin: 26px 0 10px; font-size: 1.26rem; }
+    h4 { margin: 20px 0 8px; font-size: 1.05rem; }
+    p { margin: 8px 0 14px; }
+    ul, ol { padding-left: 22px; }
+    li { margin: 7px 0; }
+    .fields { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 4px; }
+    code, .field {
+      padding: 2px 7px; border: 1px solid var(--line); border-radius: 3px;
+      background: #f2f4f7; color: #29313d; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .86rem;
+    }
+    .recommendation { border: 1px solid #bdc9c5; background: #f7fbf9; padding: 13px 15px; }
+    .rule-note { color: var(--muted); font-style: italic; }
+    .gates { margin: 12px 0 0; padding: 0; list-style: none; counter-reset: gate; }
+    .gates > li { counter-increment: gate; border-top: 1px solid var(--line); padding: 15px 0 11px 40px; position: relative; }
+    .gates > li::before { content: counter(gate) "."; position: absolute; left: 3px; top: 14px; font-family: Georgia, serif; font-size: 1.2rem; font-weight: 700; }
+    .gate-title { font-weight: 800; }
+    .gate-meta { color: var(--muted); font-size: .91rem; }
+    .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 14px 0; }
+    .role { border: 1px solid var(--line); padding: 14px; }
+    .role h4 { margin-top: 0; }
+    .processes { display: flex; flex-wrap: wrap; gap: 9px; border-top: 1px solid var(--line); margin-top: 26px; padding-top: 18px; }
+    .process-label { width: 100%; margin: 0 0 2px; color: var(--muted); font-size: .75rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+    button.process, button.close {
+      appearance: none; border: 1.5px solid var(--ink); border-radius: 2px; background: var(--sheet); color: var(--ink);
+      padding: 9px 12px; font: inherit; font-size: .88rem; font-weight: 750; cursor: pointer;
+    }
+    button.process:hover, button.process:focus-visible { background: var(--ink); color: #fff; outline: none; }
+    dialog {
+      width: min(720px, calc(100% - 28px)); max-height: min(82vh, 860px); margin: auto;
+      padding: 0; border: 2px solid var(--ink); border-radius: 3px; background: var(--sheet); color: var(--ink);
+      box-shadow: 0 28px 80px rgba(0,0,0,.28);
+    }
+    dialog::backdrop { background: rgba(20, 24, 31, .62); }
+    .modal-head { position: sticky; top: 0; z-index: 2; display: flex; justify-content: space-between; gap: 20px; align-items: start; padding: 20px 22px 16px; border-bottom: 1px solid var(--line); background: var(--sheet); }
+    .modal-head h2 { margin: 0; font-size: 1.55rem; }
+    .modal-body { padding: 20px 24px 28px; overflow: auto; }
+    .reference { margin-top: 0; color: var(--muted); font-size: .9rem; }
+    button.close { padding: 6px 10px; white-space: nowrap; }
+    button.close:hover, button.close:focus-visible { background: #eef0f4; outline: 2px solid var(--accent); outline-offset: 2px; }
+    .table-wrap { overflow-x: auto; margin: 14px 0 20px; }
+    table { width: 100%; border-collapse: collapse; font-size: .84rem; }
+    th, td { padding: 9px 8px; border: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { background: #eef1f4; font-weight: 800; }
+    .compact li { margin: 4px 0; }
+    .callout { border-left: 3px solid var(--soft); background: #fbf8ee; padding: 10px 13px; }
+    .hard { color: var(--hard); } .soft { color: var(--soft); }
+    footer { margin-top: 30px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: .78rem; }
+    @media (max-width: 680px) {
+      main { width: min(100% - 18px, 960px); padding-top: 34px; }
+      .point-summary { grid-template-columns: 38px 1fr auto; gap: 10px; padding: 14px 12px; }
+      .point-summary p { display: none; }
+      .point-body { padding: 20px 16px 24px; }
+      .role-grid { grid-template-columns: 1fr; }
+    }
+    @media print {
+      body { background: #fff; font-size: 10pt; }
+      main { width: 100%; max-width: none; padding: 0; }
+      .masthead { break-after: avoid; }
+      details.point { break-inside: avoid; box-shadow: none !important; }
+      details.point > .point-body { display: block !important; }
+      .chevron, .processes { display: none; }
+      dialog { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="masthead">
+      <h1>ExpertX - Extractor improvement plan</h1>
+      <p class="subtitle">Plan for improving and validating the Extractor. Execute in order 1 → 9.</p>
+    </header>
+
+    <section class="plan" aria-label="Improvement plan">
+      <details class="point">
+        <summary class="point-summary">
+          <span class="number">1</span>
+          <span><h2>Freeze the unit contract</h2><p>Lock what the Extractor is-and is not-responsible for.</p></span>
+          <span class="chevron" aria-hidden="true">›</span>
+        </summary>
+        <div class="point-body">
+          <p class="check"><strong>Check method:</strong> Manual by human (Product + Engineering agree once).</p>
+          <p class="summary-text">Lock the job: exhaustive, goal-blind, verbatim teachable spans with locators and <code>figRef</code> only.</p>
+          <p class="recommendation"><strong>Recommendation:</strong> Remove <code>topic</code> and <code>whyTeachable</code> from Extractor output. They add judgment and hurt determinism; topic and justification belong later, with the Curator or Knowledge Author.</p>
+          <h3>Contract fields</h3>
+          <div class="fields" aria-label="Contract fields"><span class="field">id</span><span class="field">text</span><span class="field">cite / locator</span><span class="field">figRef (optional)</span></div>
+        </div>
+      </details>
+
+      <details class="point">
+        <summary class="point-summary">
+          <span class="number">2</span>
+          <span><h2>Write the "good" definition</h2><p>Separate hard correctness gates from soft quality targets.</p></span>
+          <span class="chevron" aria-hidden="true">›</span>
+        </summary>
+        <div class="point-body">
+          <p class="check"><strong>Check method:</strong> Manual by human-write and agree the rules before testing. Each gate has its own "Verify by" method.</p>
+          <p class="summary-text"><strong>Hard</strong> = must never fail (correctness and trust). <strong>Soft</strong> = quality target (completeness and usefulness).</p>
+          <p class="rule-note">Rule of thumb: Hard = correctness/trust. Soft = completeness/usefulness/taste. This is a general comment, not a step.</p>
+
+          <h3 class="hard">Hard gates</h3>
+          <ol class="gates">
+            <li><span class="gate-title">Verbatim</span> - Every excerpt appears exactly in the source block.<div class="gate-meta"><strong>Pass bar:</strong> 100%. <strong>Verify by:</strong> Automated string match. <strong>Human:</strong> Agree this gate and pass bar. <strong>Dev:</strong> Implement the automated string-match check; already partly available in Inspector. <strong>Fail:</strong> Paraphrase or mid-word truncation.</div></li>
+            <li><span class="gate-title">Locator</span> - Every excerpt's page/block claim is correct.<div class="gate-meta"><strong>Pass bar:</strong> 100%. <strong>Verify by:</strong> Automated find-in-claimed-block. <strong>Human:</strong> Agree. <strong>Dev:</strong> Implement claimed-block check; partly in Inspector. <strong>Fail:</strong> Wrong page or block.</div></li>
+            <li><span class="gate-title">No invention</span> - No text that is not in the source.<div class="gate-meta"><strong>Pass bar:</strong> 100%. <strong>Verify by:</strong> Automated, using the same check as Verbatim. <strong>Human:</strong> Agree. <strong>Dev:</strong> Use the Verbatim mechanism. <strong>Fail:</strong> Added words.</div></li>
+            <li><span class="gate-title">FigRef</span> - If a figure is mentioned, <code>figRef</code> is present, well-formed, and points to a real figure ID.<div class="gate-meta"><strong>Pass bar:</strong> 100% of figure-mentioning excerpts. <strong>Verify by:</strong> Automated schema and ID rules. <strong>Human:</strong> Agree. <strong>Dev:</strong> Schema and ID checks; partly in Inspector. <strong>Fail:</strong> Missing, broken, or wrong reference.</div></li>
+            <li><span class="gate-title">Must-extract coverage (golden set)</span> - Every annotated must-extract span is captured.<div class="gate-meta"><strong>Pass bar:</strong> 100% on the golden set. <strong>Verify by:</strong> Automated comparison with the human-annotated list from Point 3. <strong>Human:</strong> Agree the gate and bar now; create the annotation list in Point 3. <strong>Dev:</strong> Implement comparison after Point 3. <strong>Fail:</strong> Any must-extract miss. <strong>Note:</strong> Defined here, enabled by Point 3, scored from Point 5 onward.</div></li>
+          </ol>
+
+          <h3 class="soft">Soft gates</h3>
+          <ol class="gates">
+            <li><span class="gate-title">Noise</span> - Headers, footers, page numbers, or non-teachable SKU lines.<div class="gate-meta"><strong>Pass bar:</strong> <= 5%. <strong>Verify by:</strong> Human sample. <strong>Human:</strong> Agree and score a 20-excerpt sample. <strong>Dev:</strong> No code for now. <strong>Fail:</strong> Too much noise. After Point 3, also fail must-not-extract matches.</div></li>
+            <li><span class="gate-title">Granularity</span> - Most spans are 1-3 sentences; tables and lists remain whole.<div class="gate-meta"><strong>Pass bar:</strong> >= 70% acceptable (14/20). <strong>Verify by:</strong> Human sample. <strong>Human:</strong> Agree and sample. <strong>Dev:</strong> No code for now. <strong>Fail:</strong> <code>too_small</code>, <code>too_big</code>, or <code>broken</code>.</div></li>
+            <li><span class="gate-title">Stability</span> - Same document, three runs: hard gates always pass and overlap remains high.<div class="gate-meta"><strong>Pass bar:</strong> Hard gates 3/3; overlap >= 90%. <strong>Verify by:</strong> Automated reruns and set comparison. <strong>Human:</strong> Agree. <strong>Dev:</strong> Automate. <strong>Fail:</strong> Unstable set.</div></li>
+            <li><span class="gate-title">Raw source coverage (signal only)</span> - Percentage covered after excluding boilerplate.<div class="gate-meta"><strong>Pass bar:</strong> Trend signal only. <strong>Verify by:</strong> Inspector. <strong>Human:</strong> Agree it is not a release gate. <strong>Dev:</strong> Keep the coverage report. <strong>Fail:</strong> Sharp unexplained drop.</div></li>
+          </ol>
+          <div class="processes">
+            <p class="process-label">Detailed processes</p>
+            <button class="process" data-dialog="modal-a">A   -   Noise sample</button>
+            <button class="process" data-dialog="modal-b">B   -   Granularity sample</button>
+          </div>
+        </div>
+      </details>
+
+      <details class="point">
+        <summary class="point-summary">
+          <span class="number">3</span>
+          <span><h2>Build the golden set + annotate</h2><p>Create the human ground truth that enables coverage scoring.</p></span>
+          <span class="chevron" aria-hidden="true">›</span>
+        </summary>
+        <div class="point-body">
+          <p class="check"><strong>Check method:</strong> Manual by human.</p>
+          <p class="summary-text">Pick 3-5 documents. Mark must-extract, must-not-extract, and expected <code>figRef</code> values.</p>
+          <ul>
+            <li><strong>Where it lives:</strong> A <code>golden-set</code> folder, one file or tab per document.</li>
+            <li><strong>Each entry:</strong> Span text or ID, locator, optional <code>figRef</code>, and tag: <code>must-extract</code> or <code>must-not-extract</code>.</li>
+            <li><strong>Primary use:</strong> Must-extract coverage.</li>
+            <li><strong>Also feeds:</strong> Noise, through must-not-extract examples.</li>
+            <li>Until this is complete, Must-extract cannot be scored.</li>
+          </ul>
+          <div class="processes">
+            <p class="process-label">Detailed process</p>
+            <button class="process" data-dialog="modal-c">C   -   Golden set</button>
+          </div>
+        </div>
+      </details>
+
+      <details class="point">
+        <summary class="point-summary">
+          <span class="number">4</span>
+          <span><h2>Turn the definition into a written scoring contract</h2><p>Package Points 2 and 3 into one implementable agreement.</p></span>
+          <span class="chevron" aria-hidden="true">›</span>
+        </summary>
+        <div class="point-body">
+          <p class="check"><strong>Check method:</strong> Manual by human once; then code runs most checks and humans review.</p>
+          <p class="summary-text">Package Points 2 and 3 into the scoring contract Engineering implements. This is not a commitment to manual scoring forever.</p>
+          <div class="role-grid">
+            <section class="role"><h4>Human does</h4><ul><li>Write the contract table.</li><li>Confirm what Inspector already covers versus new Engineering work.</li><li>Agree who triages failures.</li></ul></section>
+            <section class="role"><h4>Dev does</h4><ul><li>Wire or strengthen automated checks using the Point 3 golden set.</li></ul></section>
+          </div>
+          <ul>
+            <li><strong>Done when:</strong> The scoring contract exists.</li>
+            <li><strong>Still to discuss:</strong> Noise bar, which soft gates block release, owner, and where the contract lives.</li>
+          </ul>
+          <div class="processes">
+            <p class="process-label">Detailed process</p>
+            <button class="process" data-dialog="modal-d">D   -   Scoring contract</button>
+          </div>
+        </div>
+      </details>
+
+      <details class="point">
+        <summary class="point-summary">
+          <span class="number">5</span>
+          <span><h2>Score the current baseline run</h2><p>Create the dated "before" snapshot.</p></span>
+          <span class="chevron" aria-hidden="true">›</span>
+        </summary>
+        <div class="point-body">
+          <p class="check"><strong>Check method:</strong> Code fills automated gates; human completes soft checks and signs off the baseline.</p>
+          <p class="summary-text">Run the Extractor once on the golden documents, fill the results table, and preserve the result as the "before" snapshot.</p>
+          <div class="role-grid">
+            <section class="role"><h4>Human does</h4><ul><li>Pick the documents and run the Extractor.</li><li>Complete human-scored rows.</li><li>Triage failures and sign off the baseline.</li></ul></section>
+            <section class="role"><h4>Dev does</h4><ul><li>Ensure automated rows produce a score and clear Pass/Fail result.</li></ul></section>
+          </div>
+          <ul>
+            <li>Record one results table per document, using the shape shown in Process D.</li>
+            <li>Save it as <code>baseline-&lt;date&gt;</code>.</li>
+            <li><strong>Output:</strong> A dated scorecard.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="point">
+        <summary class="point-summary">
+          <span class="number">6</span>
+          <span><h2>Fix hard failures + lock official prompt/schema</h2><p>Clear trust failures first, then freeze the passing version.</p></span>
+          <span class="chevron" aria-hidden="true">›</span>
+        </summary>
+        <div class="point-body">
+          <p class="check"><strong>Check method:</strong> Human prioritizes and reviews; Dev implements; Code re-scores.</p>
+          <p class="summary-text">Fix only hard failures found in the baseline. When all hard gates pass, lock the winning prompt and schema with Verbatim reject/retry. Soft improvement starts only in Point 8.</p>
+          <div class="role-grid">
+            <section class="role"><h4>Human does</h4><ul><li>Pick the top hard failure.</li><li>Decide keep or revert after each run.</li><li>Approve the prompt/schema and confirm the lock when hard gates pass.</li></ul></section>
+            <section class="role"><h4>Dev does</h4><ul><li>Make one fix at a time.</li><li>Save the official version.</li><li>Confirm reject/retry behavior.</li></ul></section>
+          </div>
+          <ul>
+            <li><strong>Fix order:</strong> Verbatim / No invention → Locator → FigRef → Must-extract.</li>
+            <li><strong>Done when:</strong> Hard gates pass, prompt/schema are locked, and reject/retry is on.</li>
+            <li>The former Point 7 is merged into this point.</li>
+          </ul>
+          <div class="processes">
+            <p class="process-label">Detailed process</p>
+            <button class="process" data-dialog="modal-e">E   -   Hard-fail + prompt lock</button>
+          </div>
+        </div>
+      </details>
+
+      <details class="point">
+        <summary class="point-summary">
+          <span class="number">7</span>
+          <span><h2>Separate LLM judgment from code checks</h2><p>Let the model choose; make code prove.</p></span>
+          <span class="chevron" aria-hidden="true">›</span>
+        </summary>
+        <div class="point-body">
+          <p class="check"><strong>Check method:</strong> Dev implements and verifies code paths and tests.</p>
+          <p class="summary-text">Every Point 4 "Verify by: Code" gate must be a real automatic check. The prompt guides what is teachable; Code proves outputs are valid, exact, and scorable.</p>
+          <ul>
+            <li><strong>LLM decides:</strong> What is teachable and worth extracting.</li>
+            <li><strong>Code enforces:</strong> Verbatim text, valid locator, valid <code>figRef</code>, golden-set coverage, and repeatability.</li>
+            <li><strong>Done when:</strong> Every Code gate has a real execution path and tests.</li>
+          </ul>
+          <h3>Dev responsibility</h3>
+          <p>Implement every Code gate and add tests showing that the same input receives the same check.</p>
+          <div class="processes">
+            <p class="process-label">Detailed process</p>
+            <button class="process" data-dialog="modal-f">F   -   Code vs prompt</button>
+          </div>
+        </div>
+      </details>
+
+      <details class="point">
+        <summary class="point-summary">
+          <span class="number">8</span>
+          <span><h2>Run the improvement loop</h2><p>Polish soft quality without reopening hard risk.</p></span>
+          <span class="chevron" aria-hidden="true">›</span>
+        </summary>
+        <div class="point-body">
+          <p class="check"><strong>Check method:</strong> Code re-scores; human runs soft samples and decides keep/revert.</p>
+          <p class="summary-text">Start soft polish only after Points 6 and 7. Improve in this order: Noise → Granularity → Stability. Change one thing-prompt or code, never both-and keep all hard gates passing.</p>
+          <ul>
+            <li>Run the current version and capture the scorecard.</li>
+            <li>Choose one soft problem and one proposed change.</li>
+            <li>Change either prompt or code.</li>
+            <li>Rerun the full golden set and hard checks.</li>
+            <li>Run Process A or B for the relevant human sample.</li>
+            <li>Keep only when the target soft score improves and hard remains Pass; otherwise revert.</li>
+            <li>Optional later: LLM-as-judge for soft gates only, after human samples are stable. It never replaces Code or the golden set.</li>
+            <li><strong>Done when:</strong> Soft gates meet their bars or are explicitly track-only, while hard remains Pass.</li>
+          </ul>
+          <div class="role-grid">
+            <section class="role"><h4>Human does</h4><ul><li>Prioritize the soft gate.</li><li>Run samples.</li><li>Decide keep or revert.</li></ul></section>
+            <section class="role"><h4>Dev does</h4><ul><li>Make one prompt or code change.</li><li>Ensure hard gates remain Pass.</li></ul></section>
+          </div>
+          <div class="processes">
+            <p class="process-label">Detailed processes</p>
+            <button class="process" data-dialog="modal-g">G   -   Soft-polish loop</button>
+            <button class="process" data-dialog="modal-a">A   -   Noise sample</button>
+            <button class="process" data-dialog="modal-b">B   -   Granularity sample</button>
+          </div>
+        </div>
+      </details>
+
+      <details class="point">
+        <summary class="point-summary">
+          <span class="number">9</span>
+          <span><h2>Set the stop bar, then optimize speed</h2><p>Define "good enough" before cost or latency work begins.</p></span>
+          <span class="chevron" aria-hidden="true">›</span>
+        </summary>
+        <div class="point-body">
+          <p class="check"><strong>Check method:</strong> Code verifies hard gates and Stability; human signs off soft status.</p>
+          <p class="summary-text">The Extractor is done when the stop bar is met. Cost and latency optimization starts only after that.</p>
+          <ul>
+            <li><strong>Stop bar:</strong> Hard gates pass on repeated runs.</li>
+            <li>The official prompt and schema are locked.</li>
+            <li>All Code gates are real checks.</li>
+            <li>Soft gates are at their bars or explicitly marked track-only.</li>
+            <li>Human sign-off is recorded.</li>
+            <li><strong>Still to discuss:</strong> Which soft gates block release.</li>
+          </ul>
+          <div class="role-grid">
+            <section class="role"><h4>Human does</h4><ul><li>Sign off the release.</li><li>Decide which soft gates must pass versus remain track-only.</li></ul></section>
+            <section class="role"><h4>Dev does</h4><ul><li>Run Stability and create the final scorecard.</li><li>Optimize speed only after sign-off.</li><li>Revert any optimization that breaks hard gates.</li></ul></section>
+          </div>
+          <div class="processes">
+            <p class="process-label">Detailed process</p>
+            <button class="process" data-dialog="modal-h">H   -   Release checklist</button>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <footer>ExpertX - Extractor   -   Offline shareable plan   -   All checks and examples are contained in this file.</footer>
+  </main>
+
+  <dialog id="modal-a" aria-labelledby="title-a">
+    <div class="modal-head"><h2 id="title-a">A   -   Noise human sample</h2><button class="close" value="close">Close</button></div>
+    <div class="modal-body">
+      <p class="reference"><strong>Reference:</strong> Point 2   -   Soft Noise. Pass <= 5%. Human sample. After Point 3, must-not-extract matches also fail.</p>
+      <h3>What you do</h3><p>Score whether the Extractor pulls too much non-teachable junk.</p>
+      <h3>Steps</h3>
+      <ol><li>Run the Extractor and open its excerpts.</li><li>Sample 20 excerpts.</li><li>Mark each using the format below.</li><li>Calculate Noise% = noise ÷ 20. Pass when <= 5%.</li><li>Save as <code>noise-sample-&lt;doc&gt;-&lt;date&gt;.csv</code>.</li><li>Copy noise rows to the regression list and re-check them after changes.</li></ol>
+      <div class="table-wrap"><table><thead><tr><th>excerpt_id</th><th>text (short)</th><th>locator</th><th>label</th><th>reason</th></tr></thead><tbody><tr><td>e12</td><td>WHOLESALE CATALOG</td><td>page 1</td><td>noise</td><td>header</td></tr><tr><td>e2</td><td>40180 | $26</td><td>page 2</td><td>noise</td><td>sku_only</td></tr><tr><td>e1</td><td>USAID grant</td><td>page 2</td><td>teachable</td><td>-</td></tr></tbody></table></div>
+      <p><strong>Labels:</strong> <code>teachable</code> or <code>noise</code>.</p>
+      <p><strong>Reasons:</strong> <code>header</code>, <code>footer</code>, <code>page_number</code>, <code>sku_only</code>, <code>decorative</code>, <code>other</code>.</p>
+      <p class="callout"><strong>Regression rule:</strong> Keep noise rows only.</p>
+    </div>
+  </dialog>
+
+  <dialog id="modal-b" aria-labelledby="title-b">
+    <div class="modal-head"><h2 id="title-b">B   -   Granularity human sample</h2><button class="close" value="close">Close</button></div>
+    <div class="modal-body">
+      <p class="reference"><strong>Reference:</strong> Point 2   -   Soft Granularity. Pass >= 70% acceptable (14/20). Different from Noise: Noise asks "should this exist?" Granularity asks "is the chunk size right?"</p>
+      <h3>What you do</h3><p>Check excerpt size and shape: usually 1-3 sentences, while tables and lists remain whole.</p>
+      <h3>Steps</h3>
+      <ol><li>Run the Extractor and open excerpts.</li><li>Sample 20.</li><li>Mark each using the format below.</li><li>Calculate OK% = ok ÷ 20. Pass when >= 70%.</li><li>Save as <code>granularity-sample-&lt;doc&gt;-&lt;date&gt;.csv</code>.</li><li>Copy non-ok rows to the regression list.</li></ol>
+      <div class="table-wrap"><table><thead><tr><th>excerpt_id</th><th>text (short)</th><th>label</th></tr></thead><tbody><tr><td>e5</td><td>Product block</td><td>ok</td></tr><tr><td>e2</td><td>SKU scrap</td><td>too_small</td></tr><tr><td>e40</td><td>Mid-word excerpt</td><td>broken</td></tr><tr><td>e11</td><td>Whole page</td><td>too_big</td></tr></tbody></table></div>
+      <p><strong>Labels:</strong> <code>ok</code>, <code>too_small</code>, <code>too_big</code>, <code>broken</code>.</p>
+    </div>
+  </dialog>
+
+  <dialog id="modal-c" aria-labelledby="title-c">
+    <div class="modal-head"><h2 id="title-c">C   -   Golden set annotation</h2><button class="close" value="close">Close</button></div>
+    <div class="modal-body">
+      <p class="reference"><strong>Reference:</strong> Point 3. Builds ground truth for Must-extract. This is not the Noise sample-annotate the source, not Extractor output.</p>
+      <h3>What you do</h3><p>Mark what a good Extractor must catch and must not catch.</p>
+      <h3>Steps</h3>
+      <ol><li>Pick one document.</li><li>Open source text, not Extractor output.</li><li>Move page by page and mark a sheet.</li><li>Fill the format below.</li><li>Save as <code>golden-&lt;doc&gt;.csv</code>.</li><li>Repeat for 3-5 documents.</li><li>Later compare: every must-extract span should appear; must-not-extract spans preferably should not.</li></ol>
+      <div class="table-wrap"><table><thead><tr><th>span_id</th><th>text (short)</th><th>locator</th><th>tag</th><th>figRef</th></tr></thead><tbody><tr><td>s1</td><td>USAID</td><td>page 2</td><td>must-extract</td><td>-</td></tr><tr><td>s2</td><td>WHOLESALE</td><td>page 1</td><td>must-not-extract</td><td>-</td></tr><tr><td>s3</td><td>Fig. 3</td><td>page 4</td><td>must-extract</td><td>fig3</td></tr></tbody></table></div>
+      <p><strong>Tags:</strong> <code>must-extract</code>   -   <code>must-not-extract</code>.</p>
+      <p class="callout"><strong>How it pairs with Noise:</strong> Its primary purpose is Must-extract coverage. Must-not-extract entries also feed Noise, but keep the random Noise sample to catch unlisted junk.</p>
+    </div>
+  </dialog>
+
+  <dialog id="modal-d" aria-labelledby="title-d">
+    <div class="modal-head"><h2 id="title-d">D   -   Scoring contract</h2><button class="close" value="close">Close</button></div>
+    <div class="modal-body">
+      <p class="reference"><strong>Reference:</strong> Point 4. Builds on Points 2 and 3. Write the contract and keep the example result shape for every run.</p>
+      <h3>What you do</h3><p>Create the scoring contract Engineering implements.</p>
+      <div class="table-wrap"><table><thead><tr><th>Gate</th><th>Type</th><th>Bar</th><th>Verify by</th><th>Status</th></tr></thead><tbody>
+        <tr><td>Verbatim</td><td>Hard</td><td>100%</td><td>Code</td><td>Ready (strengthen)</td></tr>
+        <tr><td>Locator</td><td>Hard</td><td>100%</td><td>Code</td><td>Ready (strengthen)</td></tr>
+        <tr><td>No invention</td><td>Hard</td><td>100%</td><td>Code</td><td>Ready-same path as Verbatim</td></tr>
+        <tr><td>FigRef</td><td>Hard</td><td>100% of figure mentions</td><td>Code</td><td>Ready (strengthen)</td></tr>
+        <tr><td>Must-extract</td><td>Hard</td><td>100% golden</td><td>Code vs Point 3</td><td>Build</td></tr>
+        <tr><td>Noise</td><td>Soft</td><td><= 5%</td><td>Code vs must-not-extract + optional human</td><td>Build + human leftover</td></tr>
+        <tr><td>Granularity</td><td>Soft</td><td>>= 70% ok</td><td>Human</td><td>Human for now</td></tr>
+        <tr><td>Stability</td><td>Soft</td><td>Hard 3/3; overlap >= 90%</td><td>Code</td><td>Build</td></tr>
+        <tr><td>Raw source</td><td>Signal</td><td>Not a release bar</td><td>Code</td><td>Ready</td></tr>
+      </tbody></table></div>
+      <h3>Example results after a run</h3>
+      <p><strong>Document:</strong> WholesaleCatalog.pdf   -   <strong>Date:</strong> 2026-08-06</p>
+      <div class="table-wrap"><table><thead><tr><th>Gate</th><th>Result</th><th>Score / finding</th><th>Action</th></tr></thead><tbody>
+        <tr><td>Verbatim</td><td>Fail</td><td>140/142 exact</td><td>Triage two mismatches</td></tr>
+        <tr><td>Locator</td><td>Pass</td><td>142/142</td><td>None</td></tr>
+        <tr><td>No invention</td><td>Fail</td><td>2 added-word cases</td><td>Same triage as Verbatim</td></tr>
+        <tr><td>FigRef</td><td>Pass</td><td>7/7 valid</td><td>None</td></tr>
+        <tr><td>Must-extract</td><td>Fail</td><td>37/39 captured</td><td>Review two misses</td></tr>
+        <tr><td>Noise</td><td>Fail</td><td>2/20 = 10%</td><td>Add regression rows</td></tr>
+        <tr><td>Granularity</td><td>Pass</td><td>15/20 = 75%</td><td>Track</td></tr>
+        <tr><td>Stability</td><td>Not run</td><td>-</td><td>Run after hard fixes</td></tr>
+        <tr><td>Raw source</td><td>Signal</td><td>63%</td><td>Record trend</td></tr>
+      </tbody></table></div>
+      <p class="callout"><strong>Overall:</strong> Hard Fail → triage.</p>
+      <h3>What stays human</h3><p>Maintain the golden set   -   triage failures   -   score Granularity   -   score leftover Noise   -   release sign-off.</p>
+    </div>
+  </dialog>
+
+  <dialog id="modal-e" aria-labelledby="title-e">
+    <div class="modal-head"><h2 id="title-e">E   -   Hard-fail fix + prompt lock</h2><button class="close" value="close">Close</button></div>
+    <div class="modal-body">
+      <p class="reference"><strong>Reference:</strong> Point 6. Soft quality is out of scope here; it begins in Point 8 after hard Pass and lock.</p>
+      <h3>What you do</h3><p>Clear hard failures one at a time, then freeze the winning prompt and schema.</p>
+      <h3>Part A   -   Fix cycle</h3>
+      <ol><li>Start from the saved baseline.</li><li>Pick one hard failure in this order: Verbatim/No invention → Locator → FigRef → Must-extract.</li><li>Change one thing.</li><li>Rerun the golden set.</li><li>Re-score using Point 4.</li><li>Keep the change if the target improves and no other hard gate gets worse; otherwise revert.</li><li>Log the change and outcome.</li><li>Repeat until every hard gate passes.</li></ol>
+      <p class="callout"><strong>Keep/revert rule:</strong> Keep only when the chosen hard failure improves and no other hard gate regresses.</p>
+      <h3>Part B   -   Lock</h3>
+      <ol><li>Open the passing prompt and schema.</li><li>Confirm output contains only Point 1 fields.</li><li>Confirm rules cover every Point 4 hard gate.</li><li>Remove <code>topic</code> and <code>whyTeachable</code>.</li><li>Confirm the exclusion list.</li><li>Turn Verbatim reject/retry on.</li><li>Save as the official version.</li><li>Run the full golden set once more and confirm hard Pass.</li><li>Move to Point 8 for soft improvement.</li></ol>
+    </div>
+  </dialog>
+
+  <dialog id="modal-f" aria-labelledby="title-f">
+    <div class="modal-head"><h2 id="title-f">F   -   Code vs prompt ownership</h2><button class="close" value="close">Close</button></div>
+    <div class="modal-body">
+      <p class="reference"><strong>Reference:</strong> Point 7. Builds on Points 1, 3, 4, and 6. Scoring lives in code; the prompt provides judgment and guidance.</p>
+      <h3>What you do</h3><p>Confirm every gate marked "Verify by: Code" is a real automatic check.</p>
+      <h3>Prompt should</h3><ul><li>Choose teachable spans.</li><li>Exclude obvious noise.</li><li>Demand verbatim text, locators, and figure references.</li><li>Remain goal-blind.</li></ul>
+      <h3>Prompt must not be the only enforcement for</h3><ul><li>Exact copying.</li><li>Locator validity.</li><li>Figure-reference validity.</li><li>100% must-extract coverage.</li><li>Stability across runs.</li></ul>
+      <div class="table-wrap"><table><thead><tr><th>Already decided</th><th>Enforced by</th><th>Note</th></tr></thead><tbody>
+        <tr><td>What counts as teachable</td><td>Prompt</td><td>LLM judgment; measured against golden set</td></tr>
+        <tr><td>Goal-blind extraction</td><td>Prompt + review</td><td>No downstream-use tailoring</td></tr>
+        <tr><td>Verbatim / No invention</td><td>Code</td><td>Exact source-block string match</td></tr>
+        <tr><td>Locator validity</td><td>Code</td><td>Text must exist in claimed block</td></tr>
+        <tr><td>FigRef validity</td><td>Code</td><td>Schema, ID format, and real-ID check</td></tr>
+        <tr><td>Must-extract coverage</td><td>Code + golden set</td><td>Compare output with human annotations</td></tr>
+        <tr><td>Noise</td><td>Golden set + human</td><td>Known negatives automated; leftover sampled</td></tr>
+        <tr><td>Granularity</td><td>Human for now</td><td>Possible soft judge later</td></tr>
+        <tr><td>Stability</td><td>Code</td><td>Three reruns and set-overlap comparison</td></tr>
+      </tbody></table></div>
+      <h3>Dev checklist</h3>
+      <ol><li>List every gate marked Code in the scoring contract.</li><li>Map each gate to an actual check path.</li><li>Add deterministic tests using fixed input and output.</li><li>Make failures visible in the scorecard with the offending item.</li><li>Confirm no hard gate relies only on prompt compliance.</li></ol>
+    </div>
+  </dialog>
+
+  <dialog id="modal-g" aria-labelledby="title-g">
+    <div class="modal-head"><h2 id="title-g">G   -   Soft-polish loop</h2><button class="close" value="close">Close</button></div>
+    <div class="modal-body">
+      <p class="reference"><strong>Reference:</strong> Point 8. Starts after Points 6 and 7. Order: Noise → Granularity → Stability. Use Processes A and B.</p>
+      <h3>What you do</h3><p>Improve soft quality with one-change discipline. Each cycle changes either the prompt or code, never both.</p>
+      <h3>Cycle</h3>
+      <ol><li>Confirm hard gates currently pass.</li><li>Pick the next soft gate in order.</li><li>Record its current score and concrete failures.</li><li>Choose one hypothesis and one change.</li><li>Change the prompt or code-not both.</li><li>Rerun the entire golden set and all hard gates.</li><li>Run the relevant human sample and compare against the prior score.</li><li>Keep and log the change only if soft quality improves and hard remains Pass; otherwise revert.</li></ol>
+      <h3>Prompt or code?</h3>
+      <ul><li><strong>Prompt:</strong> Use when the issue is model judgment, such as selecting headers or choosing chunk boundaries.</li><li><strong>Code:</strong> Use when the rule is deterministic, such as removing known boilerplate or comparing run overlap.</li></ul>
+      <p class="callout"><strong>Optional later:</strong> Add LLM-as-judge for soft gates only after human samples are stable. It never replaces Code checks or the golden set.</p>
+      <p><strong>Keep/revert:</strong> Soft score improves <em>and</em> every hard gate still passes.</p>
+    </div>
+  </dialog>
+
+  <dialog id="modal-h" aria-labelledby="title-h">
+    <div class="modal-head"><h2 id="title-h">H   -   Release stop-bar checklist</h2><button class="close" value="close">Close</button></div>
+    <div class="modal-body">
+      <p class="reference"><strong>Reference:</strong> Point 9. Starts after Points 6-8. No latency or cost optimization before this checklist is complete and signed.</p>
+      <h3>What you do</h3><p>Confirm the Extractor is good enough, record sign-off, and only then allow speed work.</p>
+      <h3>Checklist</h3>
+      <ol>
+        <li>Run the official locked prompt and schema on every golden document.</li>
+        <li>Confirm Verbatim, Locator, No invention, FigRef, and Must-extract all pass.</li>
+        <li>Repeat the run three times.</li>
+        <li>Confirm hard gates pass 3/3 and set overlap is >= 90%.</li>
+        <li>Record Noise and Granularity results.</li>
+        <li>Mark each soft gate "must-pass" or "track-only."</li>
+        <li>Confirm every Code gate has a real check and test.</li>
+        <li>Create and save the final dated scorecard.</li>
+        <li>Human reviewer signs the record below.</li>
+        <li>Only after sign-off, open cost/latency optimization; rerun this checklist after every optimization.</li>
+      </ol>
+      <div class="table-wrap"><table><thead><tr><th>Sign-off record</th><th>Entry</th></tr></thead><tbody>
+        <tr><td>Official prompt/schema version</td><td>________________</td></tr>
+        <tr><td>Final scorecard date</td><td>________________</td></tr>
+        <tr><td>Hard gates 3/3</td><td>Pass / Fail</td></tr>
+        <tr><td>Stability overlap</td><td>________ %</td></tr>
+        <tr><td>Soft must-pass gates</td><td>________________</td></tr>
+        <tr><td>Soft track-only gates</td><td>________________</td></tr>
+        <tr><td>Human reviewer</td><td>________________</td></tr>
+        <tr><td>Decision and date</td><td>Release / Hold   -   ________________</td></tr>
+      </tbody></table></div>
+      <p class="callout"><strong>Rule:</strong> No speed or cost optimization before this record is signed. If an optimization breaks any hard gate, revert it.</p>
+    </div>
+  </dialog>
+
+  <script>
+    (() => {
+      const triggers = document.querySelectorAll("[data-dialog]");
+      const dialogs = document.querySelectorAll("dialog");
+
+      triggers.forEach((button) => {
+        button.addEventListener("click", () => {
+          const dialog = document.getElementById(button.dataset.dialog);
+          if (dialog && typeof dialog.showModal === "function") dialog.showModal();
+        });
+      });
+
+      dialogs.forEach((dialog) => {
+        dialog.querySelector(".close").addEventListener("click", () => dialog.close());
+        dialog.addEventListener("click", (event) => {
+          const rect = dialog.getBoundingClientRect();
+          const outside = event.clientX < rect.left || event.clientX > rect.right ||
+                          event.clientY < rect.top || event.clientY > rect.bottom;
+          if (outside) dialog.close();
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
