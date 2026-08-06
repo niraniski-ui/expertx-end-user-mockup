@@ -1,4 +1,4 @@
-ï»¿# ExpertX Mockups
+# ExpertX Mockups
 
 Interactive HTML prototypes for ExpertX.
 
@@ -19,9 +19,11 @@ Interactive HTML prototypes for ExpertX.
 
 ## Creation flow pages
 
-- [creation-flow/index.html](creation-flow/index.html) â€” landing
-- [creation-flow/domain-step1-mockup.html](creation-flow/domain-step1-mockup.html) â€” Answer â†’ Review domain flow
-- [creation-flow/competitor-domain-ui-mockup.html](creation-flow/competitor-domain-ui-mockup.html) â€” competitor comparison
+- [creation-flow/index.html](creation-flow/index.html) — landing
+- [creation-flow/domain-step1-mockup.html](creation-flow/domain-step1-mockup.html) — Answer ? Review domain flow
+- [creation-flow/competitor-domain-ui-mockup.html](creation-flow/competitor-domain-ui-mockup.html) — competitor comparison
+
+**Extractor improvement plan:** https://niraniski-ui.github.io/expertx-end-user-mockup/extractor-plan/
 
 ## Local
 
